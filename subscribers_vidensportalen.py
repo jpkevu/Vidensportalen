@@ -151,6 +151,74 @@ def school_bar_chart(school_df, top_n=15):
     fig.update_yaxes(categoryorder="total ascending")
     return fig
 
+def subscriber_timeline(df):
+    plot_df = df.copy()
+
+    plot_df["created_at"] = pd.to_datetime(
+        plot_df["created_at"],
+        errors="coerce",
+        utc=True
+    )
+
+    plot_df = plot_df.dropna(subset=["created_at"])
+
+    plot_df["måned"] = plot_df["created_at"].dt.to_period("M").astype(str)
+
+    summary = (
+        plot_df.groupby("måned")
+        .size()
+        .reset_index(name="nye_subscribers")
+        .sort_values("måned")
+    )
+
+    summary["samlet"] = summary["nye_subscribers"].cumsum()
+
+    fig = px.line(
+        summary,
+        x="måned",
+        y="samlet",
+        markers=True
+    )
+
+    return fig
+
+def monthly_subscribers_chart(df):
+    plot_df = df.copy()
+
+    plot_df["created_at"] = pd.to_datetime(
+        plot_df["created_at"],
+        errors="coerce",
+        utc=True
+    )
+
+    plot_df = plot_df.dropna(subset=["created_at"])
+
+    plot_df["måned"] = plot_df["created_at"].dt.to_period("M").astype(str)
+
+    summary = (
+        plot_df.groupby("måned")
+        .size()
+        .reset_index(name="nye_subscribers")
+        .sort_values("måned")
+    )
+
+    fig = px.bar(
+        summary,
+        x="måned",
+        y="nye_subscribers",
+        text="nye_subscribers",
+        color="nye_subscribers",
+        color_continuous_scale="Blues"
+    )
+
+    fig.update_layout(
+        xaxis_title="Måned",
+        yaxis_title="Nye subscribers",
+        coloraxis_showscale=False
+    )
+
+    return fig
+
 
 def school_map(school_df):
     map_df = school_df[school_df["har_koordinater"]].copy()
@@ -205,6 +273,7 @@ st.caption("Fordeling mellem skole/institution og virksomhed samt kort over repr
 with st.sidebar:
     st.header("Data")
     uploaded_file = st.file_uploader("Upload renset Excel-fil", type=["xlsx"])
+    subscriber_file = st.file_uploader("Upload subscriber-historik", type=["xlsx"])
     st.markdown("Hvis du ikke uploader en fil, forsøger appen at læse en standardfil i samme mappe.")
 
 try:
@@ -261,6 +330,39 @@ with right:
 st.subheader("Kort over repræsenterede skoler")
 st.markdown("**Hold musen over en prik** for at se skolens navn og antal subscribers. Prikkerne bliver større, jo flere subscribers skolen har.")
 school_map(school_df)
+
+subscriber_df = pd.read_excel(
+    "subscribers.xlsx",
+    engine="openpyxl"
+)
+
+st.subheader("Nye subscribers pr. måned")
+
+st.plotly_chart(
+    monthly_subscribers_chart(subscriber_df),
+    use_container_width=True
+)
+
+st.subheader("Samlet udvikling i subscribers")
+
+st.plotly_chart(
+    subscriber_timeline(subscriber_df),
+    use_container_width=True
+)
+
+if subscriber_file is not None:
+
+    subscriber_df = pd.read_excel(
+        subscriber_file,
+        engine="openpyxl"
+    )
+
+    st.subheader("Udvikling i subscribers")
+
+    st.plotly_chart(
+        subscriber_timeline(subscriber_df),
+        use_container_width=True
+    )
 
 missing_coords = school_df[~school_df["har_koordinater"]].sort_values("antal_subscribers", ascending=False)
 if not missing_coords.empty:
