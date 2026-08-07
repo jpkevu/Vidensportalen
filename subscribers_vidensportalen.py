@@ -86,7 +86,7 @@ def build_school_map_df(df):
         df[df["subscriber_virksomhed_skole"].astype(str).str.strip() != ""]
         .assign(org_type=lambda x: x.apply(classify_org_type, axis=1))
         .groupby("subscriber_virksomhed_skole", as_index=False)
-        .agg(antal_subscribers=("Email", "count"))
+        .agg(antal_subscribers=("email_domain", "count"))
         .rename(columns={"subscriber_virksomhed_skole": "skole"})
     )
 
@@ -116,7 +116,7 @@ def donut_chart(df):
     summary = (
         df.assign(type_simple=df.apply(classify_org_type, axis=1))
           .groupby("type_simple", as_index=False)
-          .agg(antal=("Email", "count"))
+          .agg(antal=("email_domain", "count"))
     )
 
     fig = px.pie(
@@ -214,7 +214,7 @@ except Exception as e:
     st.stop()
 
 # Grundlæggende validering
-required_cols = ["Email", "subscriber_virksomhed_skole", "subscriber_virksomhed", "afsender_type"]
+required_cols = ["email_domain", "subscriber_virksomhed_skole", "subscriber_virksomhed", "afsender_type"]
 missing_cols = [c for c in required_cols if c not in df.columns]
 if missing_cols:
     st.error(f"Følgende kolonner mangler i datasættet: {missing_cols}")
