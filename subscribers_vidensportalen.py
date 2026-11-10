@@ -1367,40 +1367,6 @@ st.plotly_chart(
     use_container_width=True
 )
 
-
-# --------------------------------------------------
-# Rensede data
-# --------------------------------------------------
-with st.expander(
-    "Vis rensede subscriber-data"
-):
-    display_columns = [
-        "created_at",
-        "email",
-        "full_name",
-        "email_domain",
-        "subscriber_virksomhed_skole",
-        "subscriber_organisation",
-        "subscriber_virksomhed",
-        "afsender_type",
-        "ændringslog"
-    ]
-
-    existing_columns = [
-        column
-        for column in display_columns
-        if column in filtered_df.columns
-    ]
-
-    st.dataframe(
-        filtered_df[
-            existing_columns
-        ],
-        use_container_width=True,
-        hide_index=True
-    )
-
-
 # --------------------------------------------------
 # Skoler uden koordinater
 # --------------------------------------------------
